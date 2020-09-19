@@ -3,19 +3,28 @@ extern crate rand;
 
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
+use redis::{Connection, RedisResult};
 
 fn main() {
-    do_something();
+    let mut con = setup_redis_connection();
+    println!("Connected to redis instance");
 
     let e1: Employee = build_employee(1);
-    println!("{:?}", e1);
+    println!("About to publish {:?} to redis", e1);
+    publish(con, e1);
 }
 
-fn do_something() -> redis::RedisResult<()> {
-    let client = redis::Client::open("redis://127.0.0.1")?;
-    let mut _con = client.get_connection()?;
+fn setup_redis_connection() -> Connection {
+    let client = redis::Client::open("redis://127.0.0.1");
+    return client.get_connection()?;
+}
 
-    Ok(())
+fn publish(mut con: Connection, employee: Employee) {
+    let _set : () = redis::cmd("SET").arg("E:"+employee.id).arg(employee.last_name).query(&mut con)?;
+}
+
+fn retrieve(mut con: Connection, key: i32) -> String {
+    let _get : () = redis::cmd("GET").arg("E:"+employee.id).query(&mut con)?;
 }
 
 #[derive(Debug)]
