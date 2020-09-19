@@ -3,10 +3,11 @@ extern crate rand;
 
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
-use redis::{Connection, RedisResult};
+use redis::{Connection, RedisResult, Client, Commands};
 
 fn main() {
-    let mut con = setup_redis_connection();
+    let client = setup_redis_client();
+    let mut con = client.get_connection();
     println!("Connected to redis instance");
 
     let e1: Employee = build_employee(1);
@@ -14,17 +15,19 @@ fn main() {
     publish(con, e1);
 }
 
-fn setup_redis_connection() -> Connection {
-    let client = redis::Client::open("redis://127.0.0.1");
-    return client.get_connection()?;
+fn setup_redis_client() -> RedisResult<Client> {
+    return redis::Client::open("redis://127.0.0.1/");
 }
 
 fn publish(mut con: Connection, employee: Employee) {
-    let _set : () = redis::cmd("SET").arg("E:"+employee.id).arg(employee.last_name).query(&mut con)?;
+    let _set: redis::RedisResult<()> = redis::cmd("SET")
+        .arg(format!("E:{}", employee.id.to_string().as_str()))
+        .arg(employee.last_name)
+        .query(&mut con);
 }
 
-fn retrieve(mut con: Connection, key: i32) -> String {
-    let _get : () = redis::cmd("GET").arg("E:"+employee.id).query(&mut con)?;
+fn retrieve(mut con: Connection, id: i32) -> redis::RedisResult<isize> {
+    return con.get(format!("E:{}", id.to_string().as_str()));
 }
 
 #[derive(Debug)]
