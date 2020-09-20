@@ -5,11 +5,17 @@ use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
 use redis::{Connection, RedisResult, Client, Commands};
 
+static ID: i32 = 5;
+
 fn main() {
-    let con = setup_redis_connection().unwrap();
-    let e1: Employee = build_employee(1);
-    println!("About to publish {:?} to redis", e1);
-    publish(con, e1);
+
+    let mut con = setup_redis_connection().unwrap();
+    let e: Employee = build_employee(ID);
+    println!("About to publish {:?} to redis", e);
+    publish(&mut con, e);
+
+    let val = retrieve(&mut con, ID);
+    println!("Value of {:?} is {}", ID, val.unwrap());
 }
 
 fn setup_redis_connection() -> RedisResult<Connection> {
@@ -19,15 +25,13 @@ fn setup_redis_connection() -> RedisResult<Connection> {
     con
 }
 
-fn publish(mut con: Connection, employee: Employee) {
-    let _set: redis::RedisResult<()> = redis::cmd("SET")
-        .arg(format!("E:{}", employee.id.to_string().as_str()))
-        .arg(employee.last_name)
-        .query(&mut con);
+fn publish(con: &mut Connection, employee: Employee) -> RedisResult<()> {
+    let _ : () = con.set(format!("E:{}", employee.id.to_string().as_str()), employee.last_name)?;
+    Ok(())
 }
 
-fn retrieve(mut con: Connection, id: i32) -> redis::RedisResult<isize> {
-    return con.get(format!("E:{}", id.to_string().as_str()));
+fn retrieve(con: &mut Connection, id: i32) -> RedisResult<String> {
+    con.get(format!("E:{}", id.to_string().as_str()))
 }
 
 #[derive(Debug)]
