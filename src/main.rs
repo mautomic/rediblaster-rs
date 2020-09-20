@@ -63,23 +63,17 @@ fn get_email(first_name: String, last_name: String) -> String {
     email.push_str(".");
     email.push_str(last_name.as_str());
     email.push_str("@company.com");
-    return email;
+    email
 }
 
 fn generate_name(_random_num: i16) -> String {
-
-    let rand_string: String = thread_rng()
-        .sample_iter(Alphanumeric)
-        .take(10)
-        .collect();
-
-    return rand_string;
+    thread_rng().sample_iter(Alphanumeric).take(10).collect()
 }
 
 fn generate_occupation(_random_num: i16) -> String {
-    return String::from("Job");
+    String::from("Job")
 }
 
 fn generate_salary() -> i32 {
-    return 100_000;
+    100_000
 }
