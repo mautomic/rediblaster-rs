@@ -6,17 +6,17 @@ use rand::distributions::Alphanumeric;
 use redis::{Connection, RedisResult, Client, Commands};
 
 fn main() {
-    let client = setup_redis_client();
-    let mut con = client.get_connection();
-    println!("Connected to redis instance");
-
+    let con = setup_redis_connection().unwrap();
     let e1: Employee = build_employee(1);
     println!("About to publish {:?} to redis", e1);
     publish(con, e1);
 }
 
-fn setup_redis_client() -> RedisResult<Client> {
-    return redis::Client::open("redis://127.0.0.1/");
+fn setup_redis_connection() -> RedisResult<Connection> {
+    let client = Client::open("redis://127.0.0.1/")?;
+    let con = client.get_connection();
+    println!("Connected to redis instance");
+    con
 }
 
 fn publish(mut con: Connection, employee: Employee) {
